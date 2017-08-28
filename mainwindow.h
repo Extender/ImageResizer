@@ -1,6 +1,8 @@
 #ifndef MAINWINDOW_H
 #define MAINWINDOW_H
 
+#include <stdint.h>
+
 #include <QMainWindow>
 #include <QFileDialog>
 #include <QFile>
@@ -44,6 +46,7 @@ public slots:
     void dialogFileSelected(QString path);
     void resizeBtnClicked();
     void resetBtnClicked();
+    void saveAsBtnClicked();
 
 private:
     Ui::MainWindow *ui;

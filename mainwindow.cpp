@@ -29,12 +29,14 @@ MainWindow::MainWindow(QWidget *parent) :
     ui->graphicsView->setScene(scene);
 
     connect(ui->resizeBtn,SIGNAL(clicked(bool)),this,SLOT(resizeBtnClicked()));
+    connect(ui->saveAsBtn,SIGNAL(clicked(bool)),this,SLOT(saveAsBtnClicked()));
     connect(ui->resetBtn,SIGNAL(clicked(bool)),this,SLOT(resetBtnClicked()));
     ui->widthBtn->setChecked(true);
 }
 
 MainWindow::~MainWindow()
 {
+    free(originalImageData);
     delete ui;
 }
 
@@ -101,12 +103,14 @@ void MainWindow::resetZoom()
 void MainWindow::dialogFileSelected(QString path)
 {
     ui->pathBox->setText(path);
+    ui->loadBtn->click();
 }
 
 void MainWindow::resizeBtnClicked()
 {
     if(image==0||image->isNull())
         return;
+
     bool useWidth=ui->widthBtn->isChecked();
     bool useHeight=ui->heightBtn->isChecked();
     int method=ui->methodBox->currentIndex();
@@ -404,12 +408,24 @@ void MainWindow::resetBtnClicked()
 {
     if(image==0||image->isNull())
         return;
+
     delete image;
     image=new QImage((uchar*)originalImageData,originalImageWidth,originalImageHeight,QImage::Format_ARGB32);
     scene->setSceneRect(0,0,originalImageWidth,originalImageHeight);
     pixmapItem->setPixmap(QPixmap::fromImage(*image));
     ui->graphicsView->viewport()->update();
     fitToWindow();
+}
+
+void MainWindow::saveAsBtnClicked()
+{
+    if(image==0||image->isNull())
+        return;
+
+    QString path=QFileDialog::getSaveFileName(this,"Save as...",QStandardPaths::writableLocation(QStandardPaths::DocumentsLocation),"JPG image (*.jpg);;PNG image (*.png);;GIF image (*.gif);;Bitmap (*.bmp)");
+    if(path=="")
+        return;
+    image->save(path,0,100);
 }
 
 uint32_t *MainWindow::qImageToBitmapData(QImage *image)
@@ -461,6 +477,6 @@ decimal_t MainWindow::bicubicInterpolate(int ix, int iy, decimal_t dx, decimal_t
 
 decimal_t MainWindow::cubicWeigh(decimal_t x)
 {
-    constexpr float ratio=1.0f/6.0f;
+    const float ratio=1.0f/6.0f;
     return ratio*(ifGTZeroArg((x+2.0f),pow((x+2.0f),3.0f))-4.0f*ifGTZeroArg(x+1.0f,pow((x+1.0f),3.0f))+6.0f*ifGTZeroArg(x,pow(x,3.0f))-4.0f*ifGTZeroArg(x-1.0f,pow((x-1.0f),3.0f)));
 }

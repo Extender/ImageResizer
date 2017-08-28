@@ -11,7 +11,7 @@
 #include <sstream>
 #include <limits>
 
-#define pos_notFound (std::numeric_limits<text_t>::max())
+#define pos_notFound (std::numeric_limits<size_t>::max())
 
 typedef size_t text_t;
 
@@ -22,10 +22,10 @@ public:
     static int64_t int64Pow(int64_t base,int64_t exp);
     static uint32_t uint32Pow(uint32_t base,uint32_t exp);
     static uint64_t uint64Pow(uint64_t base,uint64_t exp);
-    static char *mkstr(text_t length);
-    static wchar_t *mkwstr(text_t length);
+    static char *mkstr(size_t length);
+    static wchar_t *mkwstr(size_t length);
     static char *duplicateString(const char *in);
-    static char *terminateFixedLengthString(const char *in,text_t length);
+    static char *terminateFixedLengthString(const char *in,size_t length);
     static char *concat(const char *part1,const char *part2);
     static char *concat(const char *part1,const char *part2,const char *part3);
     static char *concat(const char *part1,const char *part2,const char *part3,const char *part4);
@@ -58,23 +58,27 @@ public:
     static int32_t intFromString(const char *in);
     static int64_t longFromString(const char *in);
     static char *byteToHexString(const char in,bool terminateString);
-    static char *bytesToHexString(const char *in,text_t len,bool addSpaces);
-    static char *bytesFromHexString(const char *in,text_t &size);
+    static char *bytesToHexString(const char *in,size_t len,bool addSpaces);
+    static char *bytesFromHexString(const char *in,size_t &size);
     static int32_t round(double in);
     static int32_t roundf(float in);
     static int64_t roundl(double in);
     static double roundToPrecision(double in,int32_t precision);
     static double doubleFromString(const char *in); // Only supports a.b
-    static text_t indexOf(const char *haystack,const char *needle);
-    static text_t indexOfFrom(const char *haystack,const char *needle,text_t startFrom);
-    static text_t lastIndexOf(const char *haystack,const char *needle);
-    static text_t lastIndexOfTo(const char *haystack,const char *needle,text_t to); // "to" may not be bigger than strlen(haystack).
-    static text_t indexOf(const std::vector<std::string> *haystack,std::string needle);
-    static text_t indexOfFrom(const std::vector<std::string> *haystack,std::string needle,text_t startFrom);
-    static text_t lastIndexOf(const std::vector<std::string> *haystack,std::string needle);
-    static text_t lastIndexOfTo(const std::vector<std::string> *haystack,std::string needle,text_t to); // "to" may not be bigger than haystack->length().
-    static char *substr(const char *str,text_t start);
-    static char *substr(const char *str,text_t start,text_t length);
+    static size_t indexOf(const char *haystack,const char *needle);
+    static size_t indexOfFrom(const char *haystack,const char *needle,size_t startFrom);
+    static size_t lastIndexOf(const char *haystack,const char *needle);
+    static size_t lastIndexOfTo(const char *haystack,const char *needle,size_t to); // "to" may not be bigger than strlen(haystack).
+    static size_t indexOf(const char *haystack,char needle);
+    static size_t indexOfFrom(const char *haystack,char needle,size_t startFrom);
+    static size_t lastIndexOf(const char *haystack,char needle);
+    static size_t lastIndexOfTo(const char *haystack,char needle,size_t to); // "to" may not be bigger than strlen(haystack).
+    static size_t indexOf(const std::vector<std::string> *haystack,std::string needle);
+    static size_t indexOfFrom(const std::vector<std::string> *haystack,std::string needle,size_t startFrom);
+    static size_t lastIndexOf(const std::vector<std::string> *haystack,std::string needle);
+    static size_t lastIndexOfTo(const std::vector<std::string> *haystack,std::string needle,size_t to); // "to" may not be bigger than haystack->length().
+    static char *substr(const char *str,size_t start);
+    static char *substr(const char *str,size_t start,size_t length);
     static char *freeAndReturn(char *toFree,char *out);
     static const char *freeAndReturn(char *toFree,const char *out);
     static std::string toStringAndFree(char *str);
@@ -83,27 +87,29 @@ public:
     static char *unescape(const char *str); // Unescapes all instances of \ " '
     static char *escapeDoubleQuotationMarks(const char *str); // Escapes all instances of \ "
     static char *unescapeDoubleQuotationMarks(const char *str); // Unescapes all instances of \ "
+    static char *unescapeDoubleQuotationMarksUntilEnd(const char *str,bool excludeFirst=true); // Unescapes all instances of \ " until a valid closing " is met
     static char *escapeSingleQuotationMarks(const char *str); // Escapes all instances of \ '
     static char *unescapeSingleQuotationMarks(const char *str); // Unescapes all instances of \ '
+    static char *unescapeSingleQuotationMarksUntilEnd(const char *str,bool excludeFirst=true); // Unescapes all instances of \ ' until a valid closing ' is met
     static std::vector<char*> split(const char *in,const char *separator);
     static std::vector<std::string> splitToStringArray(const char *in,const char *separator);
     static void freeCharArrayVectorContents(std::vector<char*> vector);
-    static text_t count(const char *haystack,const char *needle);
-    static text_t count(const char *haystack,char needle);
-    static text_t countUnique(const char *haystack);
-    static text_t countUnique(std::vector<std::string> haystack);
+    static size_t count(const char *haystack,const char *needle);
+    static size_t count(const char *haystack,char needle);
+    static size_t countUnique(const char *haystack);
+    static size_t countUnique(std::vector<std::string> haystack);
     static char *trimStart(const char *str);
     static char *trimEnd(const char *str);
     static char *trim(const char *str);
-    static char *firstChars(const char *in,text_t chars);
-    static char *lastChars(const char *in,text_t chars);
+    static char *firstChars(const char *in,size_t chars);
+    static char *lastChars(const char *in,size_t chars);
     static std::string trimStart(std::string str);
     static std::string trimEnd(std::string str);
     static std::string trim(std::string str);
-    static std::string firstChars(std::string in,text_t chars);
-    static std::string lastChars(std::string in,text_t chars);
-    static wchar_t *wFirstChars(const wchar_t *in,text_t chars);
-    static wchar_t *wLastChars(const wchar_t *in,text_t chars);
+    static std::string firstChars(std::string in,size_t chars);
+    static std::string lastChars(std::string in,size_t chars);
+    static wchar_t *wFirstChars(const wchar_t *in,size_t chars);
+    static wchar_t *wLastChars(const wchar_t *in,size_t chars);
     static bool isWhitespace(char chr);
     static char *strToUpper(const char *str);
     static char *strToLower(const char *str);

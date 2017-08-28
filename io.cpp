@@ -39,6 +39,31 @@ fs_t io::readFsT(char *&data)
     return readUInt32(data);
 }
 
+float io::readFloat(char *&data, bool systemIsLittleEndian)
+{
+    uint32_t f=readUInt32(data);
+    if(!systemIsLittleEndian)
+        f=reverseUInt32BitOrder(f,false);
+    void *ptr=&f;
+    return (float)*((float*)ptr);
+}
+
+double io::readDouble(char *&data, bool systemIsLittleEndian)
+{
+    uint64_t f=readUInt64(data);
+    if(!systemIsLittleEndian)
+        f=reverseUInt64BitOrder(f,false);
+    void *ptr=&f;
+    return (double)*((double*)ptr);
+}
+
+double io::readDouble2(char *&data)
+{
+    int64_t i=readUInt64(data);
+    uint64_t f=readUInt64(data);
+    return (double)i+((double)f/pow(2,(double)52));
+}
+
 char *io::readFixedLengthData(char *&data, fs_t &length)
 {
     length=readFsT(data);
@@ -97,7 +122,25 @@ fs_t io::peekFsT(char *data, fs_t pos)
     return peekUInt32(data,pos);
 }
 
-double io::peekDouble(char *data, fs_t pos)
+double io::peekFloat(char *data, fs_t pos, bool systemIsLittleEndian)
+{
+    uint32_t f=peekUInt32(data,pos);
+    if(!systemIsLittleEndian)
+        f=reverseUInt32BitOrder(f,false);
+    void *ptr=&f;
+    return (float)*((float*)ptr);
+}
+
+double io::peekDouble(char *data, fs_t pos, bool systemIsLittleEndian)
+{
+    uint64_t f=peekUInt64(data,pos);
+    if(!systemIsLittleEndian)
+        f=reverseUInt64BitOrder(f,false);
+    void *ptr=&f;
+    return (double)*((double*)ptr);
+}
+
+double io::peekDouble2(char *data, fs_t pos)
 {
     int64_t i=peekUInt64(data,pos);
     uint64_t f=peekUInt64(data,pos+sizeof(uint64_t));
@@ -162,9 +205,26 @@ fs_t io::posBasedReadFsT(char *data, fs_t &pos)
     return posBasedReadUInt32(data,pos);
 }
 
-double io::posBasedReadDouble(char *data, fs_t &pos)
+float io::posBasedReadFloat(char *data, fs_t &pos, bool systemIsLittleEndian)
 {
+    uint32_t f=posBasedReadUInt32(data,pos);
+    if(!systemIsLittleEndian)
+        f=reverseUInt32BitOrder(f,false);
+    void *ptr=&f;
+    return (float)*((float*)ptr);
+}
 
+double io::posBasedReadDouble(char *data, fs_t &pos, bool systemIsLittleEndian)
+{
+    uint64_t f=posBasedReadUInt64(data,pos);
+    if(!systemIsLittleEndian)
+        f=reverseUInt64BitOrder(f,false);
+    void *ptr=&f;
+    return (double)*((double*)ptr);
+}
+
+double io::posBasedReadDouble2(char *data, fs_t &pos)
+{
     int64_t i=posBasedReadUInt64(data,pos);
     uint64_t f=posBasedReadUInt64(data,pos);
     return (double)i+((double)f/pow(2,(double)52));
@@ -225,11 +285,29 @@ void io::writeFsT(char *data, fs_t i, fs_t &pos)
     writeUInt32(data,i,pos);
 }
 
-void io::writeDouble(char *data, double i, fs_t &pos)
+void io::writeFloat(char *data, float i, fs_t &pos, bool systemIsLittleEndian)
 {
-    int64_t n=floorl(i); // Not uint64_t!
+    void *ptr=&i;
+    uint32_t u=*((uint32_t*)ptr);
+    if(!systemIsLittleEndian)
+        u=reverseUInt32BitOrder(u,false);
+    writeUInt32(data,u,pos);
+}
+
+void io::writeDouble(char *data, double i, fs_t &pos, bool systemIsLittleEndian)
+{
+    void *ptr=&i;
+    uint64_t u=*((uint64_t*)ptr);
+    if(!systemIsLittleEndian)
+        u=reverseUInt64BitOrder(u,false);
+    writeUInt64(data,u,pos);
+}
+
+void io::writeDouble2(char *data, double i, fs_t &pos)
+{
+    int64_t n=(int64_t)floorl(i); // Not uint64_t!
     double fd=(((double)i-(double)n)*pow(2,(double)52)); // 2^64 is too large for the double! This is the optimum!
-    uint64_t fl=floorl(fd);
+    uint64_t fl=(uint64_t)floorl(fd);
     writeUInt64(data,n,pos);
     writeUInt64(data,fl,pos);
 }
@@ -292,11 +370,29 @@ void io::putFsT(char *data, fs_t i, fs_t pos)
     putUInt32(data,i,pos);
 }
 
-void io::putDouble(char *data, double i, fs_t pos)
+void io::putFloat(char *data, float i, fs_t pos, bool systemIsLittleEndian)
 {
-    int64_t n=floorl(i); // Not uint64_t!
+    void *ptr=&i;
+    uint32_t u=*((uint32_t*)ptr);
+    if(!systemIsLittleEndian)
+        u=reverseUInt32BitOrder(u,false);
+    putUInt32(data,u,pos);
+}
+
+void io::putDouble(char *data, double i, fs_t pos, bool systemIsLittleEndian)
+{
+    void *ptr=&i;
+    uint64_t u=*((uint64_t*)ptr);
+    if(!systemIsLittleEndian)
+        u=reverseUInt64BitOrder(u,false);
+    putUInt64(data,u,pos);
+}
+
+void io::putDouble2(char *data, double i, fs_t pos)
+{
+    int64_t n=(int64_t)floorl(i); // Not uint64_t!
     double fd=(((double)i-(double)n)*pow(2,(double)52)); // 2^64 is too large for the double! This is the optimum!
-    uint64_t fl=floorl(fd);
+    uint64_t fl=(uint64_t)floorl(fd);
     putUInt64(data,n,pos);
     pos+=sizeof(uint64_t);
     putUInt64(data,fl,pos);
@@ -357,11 +453,29 @@ void io::writeFsTToBuffer(char *&data, fs_t i, fs_t &pos, fs_t &bufferSize)
     writeUInt32ToBuffer(data,i,pos,bufferSize);
 }
 
-void io::writeDoubleToBuffer(char *&data, double i, fs_t &pos, fs_t &bufferSize)
+void io::writeFloatToBuffer(char *&data, float i, fs_t &pos, fs_t &bufferSize, bool systemIsLittleEndian)
 {
-    int64_t n=floorl((double)i); // Not uint64_t!
+    void *ptr=&i;
+    uint32_t u=*((uint32_t*)ptr);
+    if(!systemIsLittleEndian)
+        u=reverseUInt32BitOrder(u,false);
+    writeUInt32ToBuffer(data,u,pos,bufferSize);
+}
+
+void io::writeDoubleToBuffer(char *&data, double i, fs_t &pos, fs_t &bufferSize, bool systemIsLittleEndian)
+{
+    void *ptr=&i;
+    uint64_t u=*((uint64_t*)ptr);
+    if(!systemIsLittleEndian)
+        u=reverseUInt64BitOrder(u,false);
+    writeUInt64ToBuffer(data,u,pos,bufferSize);
+}
+
+void io::writeDoubleToBuffer2(char *&data, double i, fs_t &pos, fs_t &bufferSize)
+{
+    int64_t n=(int64_t)floorl((double)i); // Not uint64_t!
     double fd=((double)((double)i-n)*pow(2,(double)52));
-    uint64_t fl=floorl(fd);
+    uint64_t fl=(uint64_t)floorl(fd);
     writeUInt64ToBuffer(data,n,pos,bufferSize);
     writeUInt64ToBuffer(data,fl,pos,bufferSize);
 }
@@ -389,9 +503,9 @@ void io::writeRawDataToBuffer(char *&data, const char *in, fs_t length, fs_t &po
 
 void io::writeRawDataToLongBuffer(char *&data, const char *in, uint64_t length, uint64_t &pos, uint64_t &bufferSize)
 {
-    fs_t newPos=pos+length;
+    uint64_t newPos=pos+length;
     longBufferCheck(data,newPos,bufferSize);
-    memcpy(data+pos,in,length);
+    memcpy(data+((size_t)pos),in,(size_t)length);
     pos+=length;
 }
 
@@ -409,22 +523,6 @@ void io::writeRawCharToLongBuffer(char *&data, unsigned char in, uint64_t &pos, 
 {
     longBufferCheck(data,pos+1,bufferSize);
     data[pos++]=in;
-}
-
-void io::reverseByteOrder(char *data, fs_t length)
-{
-    // If length is uneven, the byte at the center doesn't need to be replaced.
-    if(length<2)
-        return;
-    fs_t lastIndex=length-1;
-    fs_t mirroredIndex=length-1;
-    for(fs_t i=0;i<(fs_t)(length/2);i++)
-    {
-        mirroredIndex=lastIndex-i;
-        uint8_t newByte=data[mirroredIndex];
-        data[mirroredIndex]=data[i];
-        data[i]=newByte;
-    }
 }
 
 void io::terminateBuffer(char *&buffer, fs_t &pos, fs_t bufferSize)
@@ -459,15 +557,149 @@ bool io::longBufferCheck(char *&buffer, uint64_t pos, uint64_t &bufferSize)
     while(pos>=bufferSize) // Needed to check if sth would fit into the buffer.
     {
         extendBufferSize(bufferSize,pos);
-        buffer=(char*)realloc(buffer,bufferSize);
+        buffer=(char*)realloc(buffer,(size_t)bufferSize);
         ret=false;
     }
     return ret;
 }
 
-double io::readDouble(char *&data)
+bool io::getSystemIsLittleEndian()
 {
-    int64_t i=readUInt64(data);
-    uint64_t f=readUInt64(data);
-    return (double)i+((double)f/pow(2,(double)52));
+    union
+    {
+        uint32_t i;
+        char c[4];
+    } b={0x01020304};
+    return b.c[0]==0x04;
+}
+
+uint16_t io::reverseUInt16ByteOrder(uint16_t i)
+{
+    uint16_t r=(uint16_t)(i>>8);
+    r|=(uint16_t)((uint16_t)(i&0xFF))<<8;
+    return r;
+}
+
+uint32_t io::reverseUInt32ByteOrder(uint32_t i)
+{
+    uint32_t r=(uint32_t)(i>>24);
+    r|=(uint32_t)((uint32_t)((i>>16)&0xFF))<<8;
+    r|=(uint32_t)((uint32_t)((i>>8)&0xFF))<<16;
+    r|=(uint32_t)((uint32_t)(i&0xFF))<<24;
+    return r;
+}
+
+uint64_t io::reverseUInt64ByteOrder(uint64_t i)
+{
+    uint64_t r=(uint64_t)(i>>56);
+    r|=(uint64_t)((uint64_t)((i>>48)&0xFF))<<8;
+    r|=(uint64_t)((uint64_t)((i>>40)&0xFF))<<16;
+    r|=(uint64_t)((uint64_t)((i>>32)&0xFF))<<24;
+    r|=(uint64_t)((uint64_t)((i>>24)&0xFF))<<32;
+    r|=(uint64_t)((uint64_t)((i>>16)&0xFF))<<40;
+    r|=(uint64_t)((uint64_t)((i>>8)&0xFF))<<48;
+    r|=(uint64_t)((uint64_t)(i&0xFF))<<56;
+    return r;
+}
+
+void io::reverseByteOrder(char *data, fs_t length)
+{
+    // If length is uneven, the byte at the center doesn't need to be replaced.
+    if(length<2)
+        return;
+    fs_t lastIndex=length-1;
+    fs_t mirroredIndex;
+    for(fs_t i=0;i<(fs_t)(length/2);i++)
+    {
+        mirroredIndex=lastIndex-i;
+        uint8_t newByte=data[mirroredIndex];
+        data[mirroredIndex]=data[i];
+        data[i]=newByte;
+    }
+}
+
+uint8_t io::reverseUInt8BitOrder(uint8_t i, bool systemIsLittleEndian)
+{
+    void *ptr=&i;
+    reverseBitOrder((char*)ptr,sizeof(uint8_t)*8,systemIsLittleEndian);
+    return (uint8_t)*((uint8_t*)ptr);
+}
+
+uint16_t io::reverseUInt16BitOrder(uint16_t i, bool systemIsLittleEndian)
+{
+    void *ptr=&i;
+    reverseBitOrder((char*)ptr,sizeof(uint16_t)*8,systemIsLittleEndian);
+    return (uint16_t)*((uint16_t*)ptr);
+}
+
+uint32_t io::reverseUInt32BitOrder(uint32_t i, bool systemIsLittleEndian)
+{
+    void *ptr=&i;
+    reverseBitOrder((char*)ptr,sizeof(uint32_t)*8,systemIsLittleEndian);
+    return (uint32_t)*((uint32_t*)ptr);
+}
+
+uint64_t io::reverseUInt64BitOrder(uint64_t i, bool systemIsLittleEndian)
+{
+    void *ptr=&i;
+    reverseBitOrder((char*)ptr,sizeof(uint64_t)*8,systemIsLittleEndian);
+    return (uint64_t)*((uint64_t*)ptr);
+}
+
+void io::reverseBitOrder(char *data, fs_t lengthInBits, bool systemIsLittleEndian)
+{
+    // Difference: direction of the bitshifts
+    // If length is uneven, the bit at the center doesn't need to be replaced.
+    fs_t lastIndex=lengthInBits-1;
+    fs_t mirroredIndex=lengthInBits-1;
+    fs_t nBit;
+    fs_t mirroredNBit;
+    fs_t nByte;
+    fs_t mirroredNByte;
+    if(systemIsLittleEndian)
+    {
+        for(fs_t i=0;i<(fs_t)(lengthInBits/2);i++)
+        {
+            nByte=(fs_t)(i/8);
+            nBit=i-nByte*8;
+            mirroredIndex=lastIndex-i;
+            mirroredNByte=(fs_t)(mirroredIndex/8);
+            mirroredNBit=mirroredIndex-mirroredNByte*8;
+            bool bit=(data[nByte]&(1<<nBit))>0;
+            bool mirroredBit=(data[mirroredNByte]&(1<<mirroredNBit))>0;
+            uint8_t pattern=1<<(7-nBit);
+            if(bit)
+                data[mirroredNByte]|=pattern;
+            else
+                data[mirroredNByte]&=(~pattern);
+            uint8_t nPattern=1<<(7-mirroredNBit);
+            if(mirroredBit)
+                data[nByte]|=nPattern;
+            else
+                data[nByte]&=(~nPattern);
+        }
+    }
+    else
+    {
+        for(fs_t i=0;i<(fs_t)(lengthInBits/2);i++)
+        {
+            nByte=(fs_t)(i/8);
+            nBit=i-nByte*8;
+            mirroredIndex=lastIndex-i;
+            mirroredNByte=(fs_t)(mirroredIndex/8);
+            mirroredNBit=mirroredIndex-mirroredNByte*8;
+            bool bit=(data[nByte]&(1>>nBit))>0;
+            bool mirroredBit=(data[mirroredNByte]&(1>>mirroredNBit))>0;
+            uint8_t pattern=1>>(7-nBit);
+            if(bit)
+                data[mirroredNByte]|=pattern;
+            else
+                data[mirroredNByte]&=(~pattern);
+            uint8_t nPattern=1>>(7-mirroredNBit);
+            if(mirroredBit)
+                data[nByte]|=nPattern;
+            else
+                data[nByte]&=(~nPattern);
+        }
+    }
 }
