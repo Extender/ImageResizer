@@ -13,5 +13,6 @@ Download link: [Win32 binary](https://github.com/Extender/ImageResizer/raw/maste
 ![Screenshot of resized image using bilinear interpolation](ScreenshotResizedBilinear.png)
 
 ### Resized using bicubic interpolation
-Note the higher quality of the output image.
+Note the higher quality of the output image.  
+
 ![Screenshot of resized image using bicubic interpolation](ScreenshotResizedBicubic.png)
